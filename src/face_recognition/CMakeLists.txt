@@ -13,6 +13,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  message_generation
 )
 
 find_package(OpenCV REQUIRED)
@@ -51,11 +52,10 @@ find_package(OpenCV REQUIRED)
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
-# )
+add_message_files(
+  FILES
+  my_msg.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -72,10 +72,10 @@ find_package(OpenCV REQUIRED)
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -109,7 +109,7 @@ find_package(OpenCV REQUIRED)
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES face_recognition
-#  CATKIN_DEPENDS cv_basics cv_bridge image_transport roscpp rospy std_msgs
+ CATKIN_DEPENDS cv_bridge image_transport roscpp rospy std_msgs message_runtime
 #  DEPENDS system_lib
 )
 
@@ -148,7 +148,7 @@ add_executable(face_recognition src/face_recognition.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
@@ -156,6 +156,8 @@ add_executable(face_recognition src/face_recognition.cpp)
 # )
 
 target_link_libraries(face_recognition ${OpenCV_LIBS} ${catkin_LIBRARIES})
+
+add_dependencies(face_recognition face_recognition_generate_messages_cpp)
 
 #############
 ## Install ##

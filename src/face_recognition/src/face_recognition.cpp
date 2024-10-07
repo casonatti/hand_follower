@@ -9,6 +9,7 @@
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
+#include <face_recognition/my_msg.h>
 
 #define LINE_THICKNESS 2
 
@@ -17,7 +18,9 @@ int main(int argc, char** argv) {
 
   ros::NodeHandle nh("~");
 
-  ros::Publisher 
+  face_recognition::my_msg msg_to_pub;
+
+  ros::Publisher pub = nh.advertise<face_recognition::my_msg>("face_center", 10);
 
   cv::VideoCapture camera(0);
 
@@ -31,7 +34,7 @@ int main(int argc, char** argv) {
 
   face_detect.load("/usr/share/opencv4/haarcascades/haarcascade_frontalface_default.xml");
 
-  while(true) {
+  while(ros::ok()) {
     camera.read(frame);
 
     if(frame.empty()) {
@@ -45,8 +48,16 @@ int main(int argc, char** argv) {
         cv::rectangle(frame, faces[i].tl(), faces[i].br(), cv::Scalar(0, 255, 0), LINE_THICKNESS);
       }
 
-      //Estudar como publicar um std::vector
       ROS_WARN("x: %d, y: %d", faces[0].x, faces[0].y);
+      
+      //Publicando o centro do retangulo
+      int32_t x_pos = faces[0].x + faces[0].width/2;
+      int32_t y_pos = faces[0].y + faces[0].height/2;
+
+      msg_to_pub.pos_x = x_pos;
+      msg_to_pub.pos_y = y_pos;
+
+      pub.publish(msg_to_pub);
 
       cv::imshow("Face Detection", frame);
       cv::waitKey(1);
