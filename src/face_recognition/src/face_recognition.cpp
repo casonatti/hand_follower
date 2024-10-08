@@ -3,13 +3,15 @@
 
 #include <ros/ros.h>
 #include <ros/console.h>
+#include <geometry_msgs/Point.h>
 
 #include <opencv2/opencv.hpp>
 #include <opencv2/objdetect.hpp>
 #include <opencv2/highgui.hpp>
 #include <opencv2/imgproc.hpp>
 
-#include <face_recognition/my_msg.h>
+#include <custom_msgs/my_msg.h>
+#include <custom_msgs/point_vector.h>
 
 #define LINE_THICKNESS 2
 
@@ -18,9 +20,9 @@ int main(int argc, char** argv) {
 
   ros::NodeHandle nh("~");
 
-  face_recognition::my_msg msg_to_pub;
+  custom_msgs::point_vector vector_to_pub;
 
-  ros::Publisher pub = nh.advertise<face_recognition::my_msg>("face_center", 10);
+  ros::Publisher pub_vector = nh.advertise<custom_msgs::point_vector>("vector_face_center", 10);
 
   cv::VideoCapture camera(0);
 
@@ -44,23 +46,26 @@ int main(int argc, char** argv) {
       std::vector<cv::Rect> faces;
       face_detect.detectMultiScale(frame, faces, 1.3, 5);
 
+      vector_to_pub.size = faces.size();
+
       for(int i = 0; i < faces.size(); i++) {
         cv::rectangle(frame, faces[i].tl(), faces[i].br(), cv::Scalar(0, 255, 0), LINE_THICKNESS);
+
+        geometry_msgs::Point point;
+
+        point.x = faces[i].x + faces[i].width/2;
+        point.y = faces[i].y + faces[i].height/2;
+
+        vector_to_pub.points.push_back(point);
       }
-
-      ROS_WARN("x: %d, y: %d", faces[0].x, faces[0].y);
       
-      //Publicando o centro do retangulo
-      int32_t x_pos = faces[0].x + faces[0].width/2;
-      int32_t y_pos = faces[0].y + faces[0].height/2;
-
-      msg_to_pub.pos_x = x_pos;
-      msg_to_pub.pos_y = y_pos;
-
-      pub.publish(msg_to_pub);
+      //Publicando o centro do(s) retangulo(s)
+      pub_vector.publish(vector_to_pub);
 
       cv::imshow("Face Detection", frame);
       cv::waitKey(1);
+
+      vector_to_pub.points.clear();
     }
   }
 
